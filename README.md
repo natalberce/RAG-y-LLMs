@@ -18,19 +18,33 @@ El código está dividido en varios archivos que colaboran entre sí para permit
 
 ### `app.py`
 
-Archivo principal que lanza la interfaz web con **Streamlit**. Contiene:
+1. **Inicializa la interfaz web con Streamlit**
+   - Muestra el título de la app.
+   - Carga el historial de conversación.
 
-- La barra lateral donde se puede:
-  - Buscar y procesar artículos de Wikipedia.
-  - Visualizar los artículos almacenados.
-  - Eliminar la base de datos.
-- El área principal donde el usuario puede:
-  - Escribir una pregunta.
-  - Ver la respuesta generada por el modelo LLM.
-  - Visualizar fuentes utilizadas.
-  - Buscar información adicional si no hay contexto suficiente.
-  - Guardar nuevos artículos de Wikipedia en la base de datos.
-- Usa memoria de conversación para mantener el historial entre interacciones.
+2. **Conecta con ChromaDB y el modelo de embeddings**
+   - Usa HuggingFace para crear embeddings.
+   - Se conecta al servidor de ChromaDB (vector store).
+
+3. **En la barra lateral permite:**
+   - Buscar una categoría de Wikipedia (ej. "Historia_de_Europa").
+   - Descargar y almacenar varios artículos.
+   - Ver los artículos guardados.
+   - Eliminar todos los artículos y reiniciar la base de datos.
+
+4. **El usuario puede hacer una pregunta**
+   - Si hay documentos almacenados, se usan como contexto.
+   - Se crea un `prompt` específico y se llama al modelo LLaMA 3 (por Ollama).
+   - El modelo responde solo si encuentra información en el contexto.
+
+5. **Si no hay suficiente información:**
+   - El sistema ofrece buscar directamente en Wikipedia.
+   - El usuario puede guardar ese contenido para futuras preguntas.
+
+6. **Muestra resultados y fuentes**
+   - Respuesta del modelo.
+   - Fragmentos de documentos usados.
+   - Historial de la conversación completa.
 
 ---
 
