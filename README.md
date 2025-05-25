@@ -34,7 +34,7 @@ Archivo principal que lanza la interfaz web con **Streamlit**. Contiene:
 
 ---
 
-### ⚙`config.py`
+### `config.py`
 
 Archivo con variables de configuración reutilizables en todo el proyecto:
 
