@@ -3,4 +3,11 @@
 
 ---
 
-## 📌 Funcionalidades
+## Funcionalidades
+
+- Búsqueda y descarga de artículos desde Wikipedia.
+- Almacenamiento y consulta de artículos mediante embeddings y búsqueda semántica.
+- Asistente conversacional que responde preguntas basadas únicamente en el contenido descargado.
+- Opción para guardar nuevos contenidos relevantes encontrados directamente desde Wikipedia.
+
+---
