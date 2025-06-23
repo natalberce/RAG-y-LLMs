@@ -1,5 +1,0 @@
-pypdf
-langchain==0.0.353
-sentence-transformers
-chromadb
-streamlit
