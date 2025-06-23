@@ -1,10 +1,10 @@
 import os
-import chromadb
-from config import FILE_LIST, INDEX_NAME, CHROMA_HOST, CHROMA_PORT
+from config import FILE_LIST, INDEX_NAME
 import requests
 import urllib
+import time 
+from config import CHROMA_CLIENT as chroma_client
 
-chroma_client = chromadb.HttpClient(host=CHROMA_HOST, port=CHROMA_PORT)
 
 
 
@@ -13,7 +13,16 @@ def buscar_en_wikipedia(pregunta):
         return None  
     termino_codificado = urllib.parse.quote(pregunta)
     url_busqueda = f"https://es.wikipedia.org/w/api.php?action=query&list=search&srsearch={termino_codificado}&format=json"
-    response = requests.get(url_busqueda)
+    try:
+        time.sleep(1)
+        response = requests.get(url_busqueda, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        resultados = data.get("query", {}).get("search", [])
+        if resultados:
+            return resultados[0]["title"]
+    except Exception as e:
+        print(f"Error al buscar en Wikipedia: {e}")
 
     if response.status_code == 200:
         try:
@@ -27,9 +36,6 @@ def buscar_en_wikipedia(pregunta):
         print(f"Error en la petición HTTP: {response.status_code}")
 
     return None
-
-
-
 
 
 
@@ -54,10 +60,46 @@ def load_name_files(path):
 
 
 def clean_files(path):
-    """Limpia el fichero de artículos y reinicia la colección en ChromaDB."""
     open(path, "w").close()
-    chroma_client.delete_collection(name=INDEX_NAME)
-    chroma_client.create_collection(name=INDEX_NAME)
+
+    existing_collections = chroma_client.list_collections()
+    if INDEX_NAME in existing_collections:
+        chroma_client.delete_collection(name=INDEX_NAME)
+
     return True
+
+
+
+def delete_specific_articles(titulos):
+    """
+    Elimina artículos específicos de ChromaDB y del archivo FILE_LIST.
+    """
+    collection = chroma_client.get_collection(name=INDEX_NAME)
+    all_data = collection.get(include=["metadatas"])
+
+    ids = all_data["ids"]
+    metadatas = all_data["metadatas"]
+
+    # Buscar los IDs que coincidan con los títulos
+    ids_a_borrar = [
+        doc_id for doc_id, metadata in zip(ids, metadatas)
+        if metadata.get("source", "").lower() in [t.lower() for t in titulos]
+    ]
+
+    if ids_a_borrar:
+        collection.delete(ids=ids_a_borrar)
+        print(f"Se han eliminado {len(ids_a_borrar)} documentos de la base vectorial.")
+    else:
+        print("No se encontraron documentos con esos títulos en ChromaDB.")
+
+    # Actualiza el archivo eliminando los títulos borrados
+    articulos_actuales = load_name_files(FILE_LIST)
+    nuevos = [a for a in articulos_actuales if a.lower() not in [t.lower() for t in titulos]]
+
+    with open(FILE_LIST, "w", encoding="utf-8") as f:
+        for art in nuevos:
+            f.write(art + "\n")
+
+
 
 
